@@ -27,14 +27,6 @@ public class Add extends Operation {
     public String optName() {
         return name;
     }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-    
-    
-    
-    
+        
    
 }

@@ -12,7 +12,6 @@ package calculator;
  */
 public class IntegerElement extends BasicElement {
 
-    private static final String name = "ADD";
     private final Integer value;
 
     public IntegerElement(Integer knownValue, Integer scopeLevel) {

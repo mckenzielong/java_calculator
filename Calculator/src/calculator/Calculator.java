@@ -6,6 +6,8 @@
 
 package calculator;
 
+import java.util.ArrayList;
+import java.util.Stack;
 import java.util.StringTokenizer;
 
 /**
@@ -27,12 +29,16 @@ public class Calculator {
             allArgs.append(args[i]);
         }
         
-        //System.out.println(allArgs.toString());
-        StringTokenizer tokens = new StringTokenizer(allArgs.toString(),"\\(|\\)" , true);
+        System.out.println(allArgs.toString());
+        StringTokenizer tokens = new StringTokenizer(allArgs.toString(),"\\(|\\)|," , true);
         
         BasicElement treeRoot = buildTree(tokens);
         System.out.println(treeRoot.toString());
+        System.out.println(treeRoot.evaluate());
        
+        while (tokens.hasMoreTokens()) {
+            System.out.println(tokens.nextToken());
+        }
         //idea here is as we parse, we will push the element on to the stack
         //once parsing is done, we will evaluate the stack, element by element
         
@@ -44,50 +50,118 @@ public class Calculator {
     private static BasicElement buildTree (StringTokenizer tokens) {
         BasicElement root = null;
         Integer scopeLevel = 0;
-        String nextDesiredElement = ""; //eww, we can do better...
-        //Should be doing this on type... ie we would expect an single opt or
-        //a two or three operation...
+        Stack<BasicElement> stackOfElements = new Stack();
+        ArrayList<BasicElement> activeVariables = new ArrayList();
+        boolean nextItemIsElement = true;
+        //TODO limit to VAR
         
         while (tokens.hasMoreTokens()) {
-            if (scopeLevel < 0) {
-                //error
-            }
             BasicElement currentElement = null; 
             String currentToken = tokens.nextToken();
             
-            /* if the next element isn't our desired token, and the current
-            desired next token has some sort of restriction, we have a format
-            error... */
-            if (! (nextDesiredElement.equalsIgnoreCase(currentToken)
-                    || nextDesiredElement.equalsIgnoreCase(""))) {
-                //error
-            } 
             
             //System.out.println(currentToken);
             switch (currentToken) {
                 case "add":
                     currentElement = new Add(scopeLevel);
-                    nextDesiredElement = "(";
+                    nextItemIsElement = false;
                     break;
                     
                 case "(":
-                        scopeLevel++;
-                        nextDesiredElement = "";
+                    //this means we increase a scope level
+                    if (nextItemIsElement) {
+                        //error
+                    }
+                    scopeLevel++;
+                    nextItemIsElement = true;
+                    break;
+                
+                case ")":
+                    //pop an element and move down a scope level
+                    scopeLevel--;
+                    //should try, else throw formatting error
+                    stackOfElements.pop();
                     break;
                     
-                case ")":
-                    scopeLevel--;
-                    nextDesiredElement = "";
+                case ",":
+                    /* seeing a ',' means a few things:
+                    1) we have "Operation" on stack, should process right next
+                    2) have let on stack, should process middle
+                    3) have let on stack, should process right
+                    4) bad formatting
+                    */
+                    if (nextItemIsElement) {
+                        //error
+                    }
+                    
+                    BasicElement workingElement = stackOfElements.pop();
+                    System.out.println("COMMA TOKEN: " + workingElement.getClass().toString());
+                    //check for cases opt(,val)
+                    if (Operation.class.isInstance(workingElement)) {
+                        Operation ops = Operation.class.cast(workingElement);
+                        if (ops.getLeftOpperand() == null) {
+                            System.out.println("WHOOPS no left element?");
+                        }
+                    } 
+                    stackOfElements.push(workingElement);
+                    //TODO Case for LET(var, val, expr)
+                    
+                    //the next element should be an element
+                    nextItemIsElement = true;
                     break;
+                
+                
+                
                     
                 default:
-                    //currentElement = new IntegerElement(Integer.parseInt(currentToken));
+                    //Looking for var or integer
+                    currentElement = new IntegerElement(Integer.valueOf(currentToken), scopeLevel);
+                    nextItemIsElement = false;
                          
             }
+            
             if (root == null) {
                 root = currentElement;
+            } 
+            
+            if (currentElement != null) {
+                if (!stackOfElements.empty()) {
+                    //behaves agnostic of ',' seperator
+                    //set correctly process the children of the parents
+                    BasicElement parentElement = stackOfElements.pop();
+                    System.out.println("Parent is: " + parentElement.getClass().toString());
+                    System.out.println(currentElement.getClass().toString());
+
+                    if (Operation.class.isInstance(parentElement)) {
+                        //if parent has left and right operands, check to see what
+
+                        Operation ops = Operation.class.cast(parentElement);
+                        if (ops.getLeftOpperand() == null) {
+                            System.out.println("SET LEFT LEMENT");
+                            ops.setLeftOpperand(currentElement);
+                        } else if (ops.getRightOpperand() == null) {
+                            System.out.println("SET RIGHT LEMENT");
+                            ops.setRightOpperand(currentElement);
+                        } else {
+                            //error!
+                        }
+                    }
+                    stackOfElements.push(parentElement);
+                }
+                
+                if (!IntegerElement.class.isInstance(currentElement)) {
+                    System.out.println("Pushing obj");
+                    stackOfElements.push(currentElement);
+                }
+                
+            } else {
+                System.out.println("TOKEN IS: " + currentToken);
             }
             
+            //we will push new opperand if not single opperand (int / var)
+
+            
+                    
         }
         System.out.println("Open brackets is: " + scopeLevel.toString());
         return root;
