@@ -15,7 +15,7 @@ package calculator;
 public class LetOperation extends BasicElement {
     
     private static final String name = "let";
-    private BasicElement variable;
+    private VariableElement variable;
     private BasicElement expression;
 
     public LetOperation(Integer scopeLevel) {
@@ -27,11 +27,11 @@ public class LetOperation extends BasicElement {
         return 0;
     }
     
-    public BasicElement getVariable() {
+    public VariableElement getVariable() {
         return variable;
     }
 
-    public void setVariable(BasicElement variable) {
+    public void setVariable(VariableElement variable) {
         this.variable = variable;
     }
     

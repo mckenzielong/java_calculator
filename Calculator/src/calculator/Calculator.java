@@ -6,6 +6,7 @@
 package calculator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
@@ -23,8 +24,8 @@ public class Calculator {
         //lazy meaning inside 
         //first combine all the arguments, incase they used spaces...
         StringBuilder allArgs = new StringBuilder();
-        for (int i = 0; i < args.length; i++) {
-            allArgs.append(args[i]);
+        for (String arg : args) {
+            allArgs.append(arg);
         }
 
         System.out.println(allArgs.toString());
@@ -48,7 +49,7 @@ public class Calculator {
         BasicElement root = null;
         Integer scopeLevel = 0;
         Stack<BasicElement> stackOfElements = new Stack();
-        ArrayList<BasicElement> activeVariables = new ArrayList();
+        HashMap<String, VariableElement> activeVariables = new HashMap();
         boolean nextItemIsElement = true;
         //TODO limit to VAR
         
@@ -98,15 +99,30 @@ public class Calculator {
                         LetOperation letOps = LetOperation.class.cast(parentElement);
                         if (letOps.getVariable() == null) {
                             //System.out.println("SET LEFT LEMENT");
-                            letOps.setVariable(currentElement);
+                            //letOps.setVariable(currentElement);
                         } else if (letOps.getExpression() == null) {
                             //System.out.println("SET RIGHT LEMENT");
                             letOps.setExpression(currentElement);
                         } else {
                             //error!
                         }
+                    } else if (VariableElement.class.isInstance(parentElement)) {
+                        VariableElement varOp = VariableElement.class.cast(parentElement);
+                        if (varOp.getValue() == null) {
+                            varOp.setValue(currentElement);
+                        } else {
+                            System.out.println("Syntax Error: Variable already has value set");
+                        }
                     }
                     stackOfElements.push(parentElement);
+                
+                } else if (VariableElement.class.isInstance(currentElement)) {
+                    BasicElement parentElement = stackOfElements.pop();
+                    //if this is a var declaration, add it to the stack, next should be value
+                    if (LetOperation.class.isInstance(parentElement)
+                            && (LetOperation.class.cast(parentElement).getVariable() == null)) {
+                        //add it to the stack, but the variable isn't active yet
+                    }
                     
                 } else if (LeftBracket.class.isInstance(currentElement)) {
                     scopeLevel++;
@@ -124,6 +140,18 @@ public class Calculator {
                             System.out.println("Syntax Error: no left element");
                         } else if (ops.getLeftOpperand() != null && ops.getRightOpperand() != null) {
                             System.out.println("Syntax Error: unexpected comma");
+                        }
+                    } else if (LetOperation.class.isInstance(parentElement)) {
+                        LetOperation letOpt = LetOperation.class.cast(parentElement);
+                        /*three cases here:
+                        1) var name just set
+                        2) value for var just set
+                        3) syntax error
+                        */
+                        if (letOpt.getVariable() == null) {
+                            System.out.println("Syntax Error: variable name not declared");
+                        } else if (letOpt.getVariable().getValue() == null) {
+                            
                         }
                     }
                     stackOfElements.push(parentElement);
@@ -185,11 +213,14 @@ public class Calculator {
 
             default:
                 //Looking for var or integer
-                returnElement = new IntegerElement(Integer.valueOf(token), scopeLevel);
+                try {
+                    returnElement = new IntegerElement(Integer.valueOf(token), scopeLevel);
+                } catch (NumberFormatException e) {
+                    returnElement = new VariableElement(scopeLevel, token);
+                }          
         }
         return returnElement;
     }
-
 }
 
             /* seeing a ',' means a few things:
