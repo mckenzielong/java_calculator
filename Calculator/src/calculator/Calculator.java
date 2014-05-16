@@ -61,10 +61,23 @@ public class Calculator {
             
             
             //System.out.println(currentToken);
+            //TODO: move this switch to own function
+            //have to add LB, RB, COMMA
             switch (currentToken) {
                 case "add":
                     currentElement = new Add(scopeLevel);
-                    nextItemIsElement = false;
+                    break;
+                
+                case "div":
+                    currentElement = new Divide(scopeLevel);
+                    break;
+
+                case "mul":
+                    currentElement = new Multiply(scopeLevel);
+                    break;
+
+                case "sub":
+                    currentElement = new Subtract(scopeLevel);
                     break;
                     
                 case "(":
@@ -110,9 +123,6 @@ public class Calculator {
                     nextItemIsElement = true;
                     break;
                 
-                
-                
-                    
                 default:
                     //Looking for var or integer
                     currentElement = new IntegerElement(Integer.valueOf(currentToken), scopeLevel);
@@ -125,6 +135,7 @@ public class Calculator {
             } 
             
             if (currentElement != null) {
+                nextItemIsElement = false;
                 if (!stackOfElements.empty()) {
                     //behaves agnostic of ',' seperator
                     //set correctly process the children of the parents
@@ -158,9 +169,7 @@ public class Calculator {
             }
             
             //we will push new opperand if not single opperand (int / var)
-
-            
-                    
+         
         }
         System.out.println("Open brackets is: " + scopeLevel.toString());
         return root;

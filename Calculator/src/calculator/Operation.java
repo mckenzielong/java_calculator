@@ -8,8 +8,9 @@ package calculator;
 
 /**
  *
- * @author Ken
+ * @author McKenzie Long
  */
+
 public abstract class Operation extends BasicElement{
     
     private BasicElement leftOpperand;
@@ -20,11 +21,11 @@ public abstract class Operation extends BasicElement{
     }
     
     public abstract String optName();
-    public abstract int operate();
+    public abstract int operation();
     
     @Override
     public int evaluate() {
-        return operate();
+        return operation();
     }
 
     public BasicElement getLeftOpperand() {
@@ -48,8 +49,5 @@ public abstract class Operation extends BasicElement{
         return optName() + "(" + leftOpperand.toString() + ","
                 + rightOpperand.toString() + ")";
     }
-    
-    
-    
     
 }

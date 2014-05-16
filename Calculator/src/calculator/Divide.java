@@ -8,19 +8,19 @@ package calculator;
 
 /**
  *
- * @author McKenzie Long
+ * @author Ken
  */
-public class Add extends Operation {
+public class Divide extends Operation {
         
-    private static final String name = "add";
+    private static final String name = "div";
     
-    public Add(Integer scopeLevel) {
+    public Divide(Integer scopeLevel) {
         super(scopeLevel);
     }
     
     @Override
     public int operation() {
-        return getLeftOpperand().evaluate() + getRightOpperand().evaluate();      
+        return getLeftOpperand().evaluate() / getRightOpperand().evaluate();      
     }
 
     @Override

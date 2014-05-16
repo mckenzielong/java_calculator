@@ -10,17 +10,17 @@ package calculator;
  *
  * @author McKenzie Long
  */
-public class Add extends Operation {
+public class Subtract extends Operation {
         
-    private static final String name = "add";
+    private static final String name = "sub";
     
-    public Add(Integer scopeLevel) {
+    public Subtract(Integer scopeLevel) {
         super(scopeLevel);
     }
     
     @Override
     public int operation() {
-        return getLeftOpperand().evaluate() + getRightOpperand().evaluate();      
+        return getLeftOpperand().evaluate() - getRightOpperand().evaluate();      
     }
 
     @Override
