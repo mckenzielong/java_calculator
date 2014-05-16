@@ -10,7 +10,7 @@ package calculator;
  *
  * @author McKenzie Long
  */
-public class IntegerElement extends BasicElement {
+public class IntegerElement extends Terminator {
 
     private final Integer value;
 
@@ -28,8 +28,5 @@ public class IntegerElement extends BasicElement {
     @Override
     public String toString() {
         return value.toString();
-    }
-    
-    
-        
+    }        
 }
