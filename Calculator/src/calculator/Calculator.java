@@ -59,7 +59,6 @@ public class Calculator {
             BasicElement currentElement = null; 
             String currentToken = tokens.nextToken();
             
-            
             //System.out.println(currentToken);
             //TODO: move this switch to own function
             //have to add LB, RB, COMMA
@@ -78,6 +77,9 @@ public class Calculator {
 
                 case "sub":
                     currentElement = new Subtract(scopeLevel);
+                    break;
+                    
+                case "let":
                     break;
                     
                 case "(":
@@ -142,16 +144,28 @@ public class Calculator {
                     BasicElement parentElement = stackOfElements.pop();
                     System.out.println("Parent is: " + parentElement.getClass().toString());
                     System.out.println(currentElement.getClass().toString());
-
+                    
+                    //parent has left and right operands (sub, add, etc)
+                    //TODO: currently duped code, think of how to fix
                     if (Operation.class.isInstance(parentElement)) {
-                        //if parent has left and right operands, check to see what
                         Operation ops = Operation.class.cast(parentElement);
                         if (ops.getLeftOpperand() == null) {
-                            System.out.println("SET LEFT LEMENT");
+                            //System.out.println("SET LEFT LEMENT");
                             ops.setLeftOpperand(currentElement);
                         } else if (ops.getRightOpperand() == null) {
-                            System.out.println("SET RIGHT LEMENT");
+                            //System.out.println("SET RIGHT LEMENT");
                             ops.setRightOpperand(currentElement);
+                        } else {
+                            //error!
+                        }
+                    } else if (LetOperation.class.isInstance(parentElement)) {
+                        LetOperation letOps = LetOperation.class.cast(parentElement);
+                        if (letOps.getVariable()== null) {
+                            //System.out.println("SET LEFT LEMENT");
+                            letOps.setVariable(currentElement);
+                        } else if (letOps.getExpression()== null) {
+                            //System.out.println("SET RIGHT LEMENT");
+                            letOps.setExpression(currentElement);
                         } else {
                             //error!
                         }
