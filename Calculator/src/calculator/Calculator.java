@@ -91,6 +91,7 @@ public class Calculator {
                             System.out.println("SET RIGHT LEMENT " + currentElement.getClass().toString());
                             ops.setRightOpperand(currentElement);
                         } else {
+                            System.out.println("Syntax Error: opperand is loaded");
                             //error!
                         }
                     } else if (LetOperation.class.isInstance(parentElement)) {
@@ -120,7 +121,9 @@ public class Calculator {
                         Operation ops = Operation.class.cast(parentElement);
                         if (ops.getLeftOpperand() == null) {
                             //Error...
-                            System.out.println("WHOOPS no left element?");
+                            System.out.println("Syntax Error: no left element");
+                        } else if (ops.getLeftOpperand() != null && ops.getRightOpperand() != null) {
+                            System.out.println("Syntax Error: unexpected comma");
                         }
                     }
                     stackOfElements.push(parentElement);
