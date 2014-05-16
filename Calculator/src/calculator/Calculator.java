@@ -44,11 +44,25 @@ public class Calculator {
     private static BasicElement buildTree (StringTokenizer tokens) {
         BasicElement root = null;
         Integer scopeLevel = 0;
+        String nextDesiredElement = ""; //eww, we can do better...
+        //Should be doing this on type... ie we would expect an single opt or
+        //a two or three operation...
         
         while (tokens.hasMoreTokens()) {
+            if (scopeLevel < 0) {
+                //error
+            }
             BasicElement currentElement = null; 
             String currentToken = tokens.nextToken();
-            String nextDesiredElement = null;
+            
+            /* if the next element isn't our desired token, and the current
+            desired next token has some sort of restriction, we have a format
+            error... */
+            if (! (nextDesiredElement.equalsIgnoreCase(currentToken)
+                    || nextDesiredElement.equalsIgnoreCase(""))) {
+                //error
+            } 
+            
             //System.out.println(currentToken);
             switch (currentToken) {
                 case "add":
@@ -57,17 +71,18 @@ public class Calculator {
                     break;
                     
                 case "(":
-                    scopeLevel++;
+                        scopeLevel++;
+                        nextDesiredElement = "";
                     break;
                     
                 case ")":
                     scopeLevel--;
+                    nextDesiredElement = "";
                     break;
                     
                 default:
                     //currentElement = new IntegerElement(Integer.parseInt(currentToken));
-                    
-                
+                         
             }
             if (root == null) {
                 root = currentElement;

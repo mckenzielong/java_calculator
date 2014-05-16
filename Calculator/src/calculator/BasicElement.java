@@ -13,7 +13,7 @@ package calculator;
 public abstract class BasicElement {
     
     private BasicElement parent;
-    private Integer scope;
+    private final Integer scope;
 
     public BasicElement (Integer scopeLevel) {
         scope = scopeLevel;
