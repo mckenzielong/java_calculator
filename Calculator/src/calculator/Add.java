@@ -12,7 +12,7 @@ package calculator;
  */
 public class Add extends Operation {
         
-    private static final String name = "ADD";
+    private static final String name = "add";
     
     public Add(Integer scopeLevel) {
         super(scopeLevel);

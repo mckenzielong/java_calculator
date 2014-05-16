@@ -134,7 +134,6 @@ public class Calculator {
 
                     if (Operation.class.isInstance(parentElement)) {
                         //if parent has left and right operands, check to see what
-
                         Operation ops = Operation.class.cast(parentElement);
                         if (ops.getLeftOpperand() == null) {
                             System.out.println("SET LEFT LEMENT");

@@ -45,11 +45,8 @@ public abstract class Operation extends BasicElement{
 
     @Override
     public String toString() {
-        System.out.println(optName());
-        System.out.println(leftOpperand.toString() );
-        System.out.println(rightOpperand.toString() );
-        return optName() + "( " + leftOpperand.toString() + " "
-                + rightOpperand.toString() + " )";
+        return optName() + "(" + leftOpperand.toString() + ","
+                + rightOpperand.toString() + ")";
     }
     
     
