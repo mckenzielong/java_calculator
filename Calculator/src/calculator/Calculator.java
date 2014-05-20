@@ -30,7 +30,7 @@ public class Calculator {
 
         System.out.println(allArgs.toString());
         StringTokenizer tokens = new StringTokenizer(allArgs.toString(), "\\(|\\)|,", true);
-
+        
         BasicElement treeRoot = buildTree(tokens);
         System.out.println(treeRoot.toString());
         System.out.println(treeRoot.evaluate());
@@ -50,7 +50,6 @@ public class Calculator {
         Integer scopeLevel = 0;
         Stack<BasicElement> stackOfElements = new Stack();
         HashMap<String, VariableElement> activeVariables = new HashMap();
-        boolean nextItemIsElement = true;
         //TODO limit to VAR
         
         while (tokens.hasMoreTokens()) {
@@ -68,7 +67,6 @@ public class Calculator {
                 return null;
             }
 
-            nextItemIsElement = false;
             if (!stackOfElements.empty()) {
                 //behaves agnostic of ',' seperator
                 //set correctly process the children of the parents
@@ -86,10 +84,10 @@ public class Calculator {
                     if (Operation.class.isInstance(parentElement)) {
                         Operation ops = Operation.class.cast(parentElement);
                         if (ops.getLeftOpperand() == null) {
-                            System.out.println("SET LEFT LEMENT " + currentElement.getClass().toString());
+                            System.out.println("SET LEFT ELEMENT " + currentElement.getClass().toString());
                             ops.setLeftOpperand(currentElement);
                         } else if (ops.getRightOpperand() == null) {
-                            System.out.println("SET RIGHT LEMENT " + currentElement.getClass().toString());
+                            System.out.println("SET RIGHT ELEMENT " + currentElement.getClass().toString());
                             ops.setRightOpperand(currentElement);
                         } else {
                             System.out.println("Syntax Error: opperand is loaded");
@@ -176,7 +174,8 @@ public class Calculator {
      * @param scopeLevel
      * @return
      */
-    private static BasicElement processToken(String token, Integer scopeLevel) {
+    private static BasicElement processToken(String token, Integer scopeLevel) 
+            throws NumberFormatException,IllegalArgumentException {
         BasicElement returnElement;
         switch (token) {
             case "add":
@@ -212,12 +211,14 @@ public class Calculator {
                 break;
 
             default:
-                //Looking for var or integer
-                try {
+                //Use regex to see if the token is a number or variable
+                if (token.matches("\\d+")) {
+                    System.out.println("Is Const");
                     returnElement = new IntegerElement(Integer.valueOf(token), scopeLevel);
-                } catch (NumberFormatException e) {
+                } else {
                     returnElement = new VariableElement(scopeLevel, token);
-                }          
+                    System.out.println("Is Var");
+                }     
         }
         return returnElement;
     }
