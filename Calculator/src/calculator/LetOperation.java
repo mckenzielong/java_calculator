@@ -51,7 +51,7 @@ public class LetOperation extends Operation {
    public void setSecondComma() {
       this.secondComma = true;
    }
-   
+
    /**
     * @return the variable stored and used by the operation.
     */
@@ -61,6 +61,7 @@ public class LetOperation extends Operation {
 
    /**
     * Set the variable that might be referenced in the let operation expression.
+    *
     * @param variable variable be set
     */
    public void setVariable(VariableElement variable) {
@@ -77,13 +78,15 @@ public class LetOperation extends Operation {
 
    /**
     * The operation is considered valid only once the left bracket, variable, first and second
-    * comma, expression and right bracket have been encountered.  ie: let(name, value, expression)
-    * @return true if the operation is valid, false otherwise. 
+    * comma, expression and right bracket have been encountered. ie: let(name, value, expression)
+    *
+    * @return true if the operation is valid, false otherwise.
     */
    @Override
    public boolean isValidSyntax() {
       return hasLeftBracket()
-              && (variable != null)
+              && (variable != null
+              && variable.getValue() != null)
               && hasComma()
               && hasSecondComma()
               && (expression != null)

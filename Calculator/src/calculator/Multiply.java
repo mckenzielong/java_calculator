@@ -8,7 +8,7 @@ package calculator;
  */
 public class Multiply extends LROperation {
 
-   private static final String name = "mul";
+   private static final String name = "mult";
 
    public Multiply(Integer scopeLevel) {
       super(scopeLevel);

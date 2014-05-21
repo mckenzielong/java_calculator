@@ -110,6 +110,8 @@ public class Calculator {
       } catch (UnsupportedOperationException e) {
          System.out.println(vettedArgs);
          System.out.println("Error evaluating: " + e.getMessage());
+      } catch (ArithmeticException e) {
+         System.out.println("Arithmetic Error: " + e.getMessage());
       } catch (Exception e) {
          //General, but allows us to exit gracefully on error.
          System.out.println(vettedArgs);
@@ -118,7 +120,7 @@ public class Calculator {
 
    }
 
-   private static BasicElement buildSyntaxTree(StringTokenizer tokens)
+   public static BasicElement buildSyntaxTree(StringTokenizer tokens)
            throws SyntaxTreeException, IllegalArgumentException, NumberFormatException {
       BasicElement root = null;
       Integer scopeLevel = 0;
@@ -177,7 +179,7 @@ public class Calculator {
 
                   //we expect the finished element to be valid
                   if (!finishedElement.isValidSyntax()) {
-                     throw new SyntaxTreeException(finishedElement.toString()
+                     throw new SyntaxTreeException(finishedElement.getClass().toString()
                              + " is not valid at scope level: " + finishedElement.getScope());
                   }
 
@@ -238,6 +240,10 @@ public class Calculator {
 
       }
       System.out.println("Open brackets is: " + scopeLevel.toString());
+      if (scopeLevel > 0) {
+         throw new SyntaxTreeException("There is " + scopeLevel + " unclosed brackets.");
+      }
+      
       return root;
    }
 
@@ -262,7 +268,7 @@ public class Calculator {
             returnElement = new Divide(scopeLevel);
             break;
 
-         case "mul":
+         case "mult":
             returnElement = new Multiply(scopeLevel);
             break;
 
@@ -287,8 +293,8 @@ public class Calculator {
             break;
 
          default:
-            //Use regex to see if the token is a number or variable
-            if (token.matches("\\d+")) {
+            //Use regex to see if the token is a number or variable, deal with negatives too
+            if (token.matches("[-]?\\d+")) {
                returnElement = new IntegerElement(scopeLevel, Integer.valueOf(token));
             } else {
                returnElement = new VariableElement(scopeLevel, token);
@@ -395,6 +401,12 @@ public class Calculator {
             letOpt.setVariable(VariableElement.class.cast(currentElement));
          } else if (letOpt.hasComma() && !letOpt.hasSecondComma()) {
             //Here we have the second item in the let, the value expression
+            if (letOpt.getVariable() == null) {
+               //if no variable has been given
+               throw new SyntaxTreeException("Variable for " + letOpt.getClass().toString()
+                       + " at scope: " + parentElement.getScope() 
+                       + " is expected to be set, but is not.");
+            }
             if (letOpt.getVariable().getValue() == null) {
                System.out.println("Set variable's value");
                letOpt.getVariable().setValue(currentElement);
