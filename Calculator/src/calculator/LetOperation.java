@@ -12,14 +12,16 @@ package calculator;
  * 
  * */
 
-public class LetOperation extends BasicElement {
+public class LetOperation extends Operation {
     
     private static final String name = "let";
+    private boolean secondComma;
     private VariableElement variable;
     private BasicElement expression;
 
     public LetOperation(Integer scopeLevel) {
         super(scopeLevel);
+        secondComma = false;
     }
     
     @Override
@@ -29,6 +31,14 @@ public class LetOperation extends BasicElement {
     
     public VariableElement getVariable() {
         return variable;
+    }
+    
+    public boolean hasSecondComma() {
+        return secondComma;
+    }
+
+    public void setSecondComma() {
+        this.secondComma = true;
     }
 
     public void setVariable(VariableElement variable) {
@@ -45,10 +55,11 @@ public class LetOperation extends BasicElement {
 
     @Override
     public boolean isValidSyntax() {
-        return (variable != null)
-                && (expression != null);
+        return hasLeftBracket()
+                && (variable != null)
+                && hasComma()
+                && hasSecondComma()
+                && (expression != null)
+                && hasRightBracket();    
     }
-    
-    
-    
 }

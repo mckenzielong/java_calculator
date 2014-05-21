@@ -10,7 +10,7 @@ package calculator;
  *
  * @author McKenzie Long
  */
-public class Add extends Operation {
+public class Add extends LROperation {
         
     private static final String name = "add";
     

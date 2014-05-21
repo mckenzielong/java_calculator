@@ -10,7 +10,7 @@ package calculator;
  *
  * @author McKenzie Long
  */
-public class IntegerElement extends Terminator {
+public class IntegerElement extends BasicElement {
 
     private final Integer value;
 

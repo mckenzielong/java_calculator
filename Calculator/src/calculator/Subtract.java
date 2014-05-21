@@ -10,7 +10,7 @@ package calculator;
  *
  * @author McKenzie Long
  */
-public class Subtract extends Operation {
+public class Subtract extends LROperation {
         
     private static final String name = "sub";
     

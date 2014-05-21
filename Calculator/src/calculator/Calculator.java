@@ -30,8 +30,8 @@ public class Calculator {
 
         System.out.println(allArgs.toString());
         StringTokenizer tokens = new StringTokenizer(allArgs.toString(), "\\(|\\)|,", true);
-        
-        BasicElement treeRoot = buildTree(tokens);
+
+        BasicElement treeRoot = buildSyntaxTree(tokens);
         System.out.println(treeRoot.toString());
         System.out.println(treeRoot.evaluate());
 
@@ -45,52 +45,70 @@ public class Calculator {
         //operationStack.push(new Operation(new IntegerElement(4), new IntegerElement(2)));
     }
 
-    private static BasicElement buildTree(StringTokenizer tokens) {
+    private static BasicElement buildSyntaxTree(StringTokenizer tokens) {
         BasicElement root = null;
         Integer scopeLevel = 0;
         Stack<BasicElement> stackOfElements = new Stack();
         HashMap<String, VariableElement> activeVariables = new HashMap();
         //TODO limit to VAR
-        
+
+        if (tokens.hasMoreTokens()) {
+            root = createNode(tokens.nextToken(), scopeLevel);
+            stackOfElements.push(root);
+        } else {
+            //error, no tokens provided...
+        }
+
         while (tokens.hasMoreTokens()) {
             String currentToken = tokens.nextToken();
             BasicElement currentElement = createNode(currentToken, scopeLevel);
-
-            //We now have and object representing the current token in hand
-            //move this?
-            if (root == null) {
-                root = currentElement;
-            }
-
-            //TODO: error
-            if (currentElement == null) {
-                return null;
-            }
 
             if (!stackOfElements.empty()) {
                 //behaves agnostic of ',' seperator
                 //set correctly process the children of the parents
                 System.out.println("current is: " + currentElement.getClass().toString());
 
-                //parent has left and right operands (sub, add, etc)
-                //TODO: currently duped code, think of how to fix
-                //if current is an LROpt, let, var or int, we need to look at parent
-                    
-                BasicElement parentElement = updateParentNode(stackOfElements.pop(), currentElement);
-                stackOfElements.push(parentElement);
- 
-                if (LeftBracket.class.isInstance(currentElement)) {
-                    scopeLevel++;
-                } else if (RightBracket.class.isInstance(currentElement)) {
-                    BasicElement finishedElement = stackOfElements.pop();
-                    if (!finishedElement.isValidSyntax()) {
-                        //error, bad syntax
+                /* if the current token is a terminator, update the parent's 
+                 syntax in terms of 'terminators'. 
+  
+                 Otherwise we have a var, const or Operation in hand, and we
+                 need to update the parent.  Found it easier to structure code
+                 this way since we are updating for syntax versus updating for
+                 both syntax and evaluation */
+                BasicElement parentElement = stackOfElements.pop();
+
+                if (Terminator.class.isInstance(currentElement)) {
+
+                    parentElement = updateParentNodeTerminator(parentElement,
+                            Terminator.class.cast(currentElement));
+
+                    /* Once we have updated the parent for syntax, we need to 
+                     check if any adjustments must be made to the scope level. 
+                     In this grammar, left brackets should be a scope increase
+                     and right brackets mean a decrease, and that our element 
+                     is done being updated */
+                    if (LeftBracket.class.isInstance(currentElement)) {
+                        scopeLevel++;
+                    } else if (RightBracket.class.isInstance(currentElement)) {
+                        BasicElement finishedElement = stackOfElements.pop();
+                        if (!finishedElement.isValidSyntax()) {
+                            //error, bad syntax
+                        }
+                        scopeLevel--;
                     }
-                    scopeLevel--;
-                } 
+
+                } else {
+                    parentElement = updateParentNodeExpression(parentElement,
+                            currentElement);
+
+                }
+
+                stackOfElements.push(parentElement);
+
             }
 
-            if (!Terminator.class.isInstance(currentElement)) {
+            if (!Terminator.class.isInstance(currentElement)
+                    || !IntegerElement.class.isInstance(currentElement)) {
                 System.out.println("Pushing obj");
                 stackOfElements.push(currentElement);
             }
@@ -107,8 +125,8 @@ public class Calculator {
      * @param scopeLevel
      * @return
      */
-    private static BasicElement createNode(String token, Integer scopeLevel) 
-            throws NumberFormatException,IllegalArgumentException {
+    private static BasicElement createNode(String token, Integer scopeLevel)
+            throws NumberFormatException, IllegalArgumentException {
         BasicElement returnElement;
         switch (token) {
             case "add":
@@ -151,15 +169,16 @@ public class Calculator {
                 } else {
                     returnElement = new VariableElement(scopeLevel, token);
                     System.out.println("Is Var");
-                }     
+                }
         }
         return returnElement;
     }
-    
-    private static BasicElement updateParentNode(BasicElement parentElement, BasicElement currentElement) {
+
+    private static BasicElement updateParentNodeTerminator(
+            BasicElement parentElement, Terminator currentElement) {
         System.out.println("Parent is: " + parentElement.getClass().toString());
         if (Operation.class.isInstance(parentElement)) {
-            Operation ops = Operation.class.cast(parentElement);
+            Operation ops = LROperation.class.cast(parentElement);
             if (LeftBracket.class.isInstance(currentElement)) {
                 if (!ops.hasLeftBracket()) {
                     ops.setLeftBracket();
@@ -176,66 +195,59 @@ public class Calculator {
                 if (!ops.hasComma()) {
                     ops.setComma();
                 } else {
-                    //error, comma already set
+                    //Here we have the let operation to consider, it has two
+                    if (LetOperation.class.isInstance(ops)) {
+                        LetOperation letOp = LetOperation.class.cast(ops);
+                        if (!letOp.hasSecondComma()) {
+                            letOp.setSecondComma();
+                        } else {
+                            //error, second comma set
+                        }
+                    } else {
+                        //comma is already set
+                    }
                 }
-            } else {   
-                if (ops.getLeftOpperand() == null) {
-                    System.out.println("SET LEFT ELEMENT " + currentElement.getClass().toString());
-                    ops.setLeftOpperand(currentElement);
-                } else if (ops.getRightOpperand() == null) {
-                    System.out.println("SET RIGHT ELEMENT " + currentElement.getClass().toString());
-                    ops.setRightOpperand(currentElement);
-                } else {
-                    System.out.println("Syntax Error: opperand is loaded");
-                    //error!
-                }
-            }  
-        } /* else if (LetOperation.class.isInstance(parentElement)) {
-            LetOperation letOps = LetOperation.class.cast(parentElement);
-            if (letOps.getVariable() == null) {
-                //System.out.println("SET LEFT ELEMENT");
-                //letOps.setVariable(currentElement);
-            } else if (letOps.getExpression() == null) {
-                //System.out.println("SET RIGHT ELEMENT");
-                letOps.setExpression(currentElement);
             } else {
-                //error!
+                //terminator case not implemented           
             }
-        } else if (VariableElement.class.isInstance(parentElement)) {
-            VariableElement varOp = VariableElement.class.cast(parentElement);
-            if (varOp.getValue() == null) {
-                varOp.setValue(currentElement);
-            } else {
-                System.out.println("Syntax Error: Variable already has value set");
-            }
-        } */
+        } else {
+            //parent case not implemented -- syntax error
+        }
+
         return parentElement;
+    }
+
+    private static BasicElement updateParentNodeExpression(
+            BasicElement parentElement, BasicElement currentElement) {
+
+        return null;
+
     }
 }
 
-            /* seeing a ',' means a few things:
-             1) we have "Operation" on stack, should process right next
-             2) have let on stack, should process middle
-             3) have let on stack, should process right
-             4) bad formatting
+/* seeing a ',' means a few things:
+ 1) we have "Operation" on stack, should process right next
+ 2) have let on stack, should process middle
+ 3) have let on stack, should process right
+ 4) bad formatting
                  
-             if (nextItemIsElement) {
-             //error
-             }
+ if (nextItemIsElement) {
+ //error
+ }
 
-             BasicElement workingElement = stackOfElements.pop();
-             System.out.println("COMMA TOKEN: " + workingElement.getClass().toString());
-             //check for cases opt(,val)
-             if (Operation.class.isInstance(workingElement)) {
-             Operation ops = Operation.class.cast(workingElement);
-             if (ops.getLeftOpperand() == null) {
-             System.out.println("WHOOPS no left element?");
-             }
-             }
-             stackOfElements.push(workingElement);
-             //TODO Case for LET(var, val, expr)
+ BasicElement workingElement = stackOfElements.pop();
+ System.out.println("COMMA TOKEN: " + workingElement.getClass().toString());
+ //check for cases opt(,val)
+ if (Operation.class.isInstance(workingElement)) {
+ Operation ops = Operation.class.cast(workingElement);
+ if (ops.getLeftOpperand() == null) {
+ System.out.println("WHOOPS no left element?");
+ }
+ }
+ stackOfElements.push(workingElement);
+ //TODO Case for LET(var, val, expr)
 
-             //the next element should be an element
-             nextItemIsElement = true;
-             break;
-             */
+ //the next element should be an element
+ nextItemIsElement = true;
+ break;
+ */

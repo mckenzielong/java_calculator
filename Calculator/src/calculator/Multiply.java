@@ -10,7 +10,7 @@ package calculator;
  *
  * @author Ken
  */
-public class Multiply extends Operation {
+public class Multiply extends LROperation {
         
     private static final String name = "mul";
     

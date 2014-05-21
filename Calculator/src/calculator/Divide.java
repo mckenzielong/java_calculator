@@ -10,7 +10,7 @@ package calculator;
  *
  * @author Ken
  */
-public class Divide extends Operation {
+public class Divide extends LROperation {
         
     private static final String name = "div";
     

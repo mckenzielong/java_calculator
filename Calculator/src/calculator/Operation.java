@@ -8,13 +8,10 @@ package calculator;
 
 /**
  *
- * @author McKenzie Long
+ * @author Ken
  */
-
-public abstract class Operation extends BasicElement{
+public abstract class Operation extends BasicElement {
     
-    private BasicElement leftOpperand;
-    private BasicElement rightOpperand;
     private boolean leftBracket;
     private boolean rightBracket;
     private boolean comma;
@@ -24,36 +21,6 @@ public abstract class Operation extends BasicElement{
         leftBracket = false;
         rightBracket = false;
         comma = false;
-    }
-    
-    public abstract String optName();
-    public abstract int operation();
-    
-    @Override
-    public int evaluate() {
-        return operation();
-    }
-
-    public BasicElement getLeftOpperand() {
-        return leftOpperand;
-    }
-
-    public BasicElement getRightOpperand() {
-        return rightOpperand;
-    }
-    
-    public void setLeftOpperand(BasicElement leftOpperand) {
-        this.leftOpperand = leftOpperand;
-    }
-
-    public void setRightOpperand(BasicElement rightOpperand) {
-        this.rightOpperand = rightOpperand;
-    }
-
-    @Override
-    public String toString() {
-        return optName() + "(" + leftOpperand.toString() + ","
-                + rightOpperand.toString() + ")";
     }
     
     public boolean hasLeftBracket() {
@@ -78,14 +45,6 @@ public abstract class Operation extends BasicElement{
 
     public void setComma() {
         this.comma = true;
-    }  
-    
-    @Override
-    public boolean isValidSyntax() {
-        return leftBracket
-                && (leftOpperand != null)
-                && comma
-                && (rightOpperand != null)
-                && rightBracket;        
     }
+    
 }
