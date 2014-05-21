@@ -5,8 +5,12 @@ import java.util.Stack;
 import java.util.StringTokenizer;
 
 /**
+ * <p>
  * Calculator produces an output to console when evaluating a string of expressions. A syntax tree
  * is built and evaluated. Output is printed to the standard out.
+ * </p>
+ * <p>
+ * The idea I had was to approach this by building and evaluating a syntax tree.
  *
  * @author McKenzie Long
  */
@@ -55,9 +59,22 @@ public class Calculator {
          BasicElement treeRoot = buildSyntaxTree(tokens);
          System.out.println(treeRoot.toString());
          System.out.println(treeRoot.evaluate());
-      } catch (Exception e) {
+      } catch (SyntaxTreeException e) {
          System.out.println(vettedArgs);
-         System.out.println("Error: " + e.getMessage());
+         System.out.println("Error building syntax tree: " + e.getMessage());
+      } catch (NumberFormatException e) {
+         System.out.println(vettedArgs);
+         System.out.println("Error parsing integer: " + e.getMessage());
+      } catch (IllegalArgumentException e) {
+         System.out.println(vettedArgs);
+         System.out.println("Error creating variable: " + e.getMessage());
+      } catch (UnsupportedOperationException e) {
+         System.out.println(vettedArgs);
+         System.out.println("Error evaluating: " + e.getMessage());
+      } catch (Exception e) {
+         //General, but allows us to exit gracefully on error.
+         System.out.println(vettedArgs);
+         System.out.println("Unexpected Error: " + e.getMessage());
       }
 
    }
