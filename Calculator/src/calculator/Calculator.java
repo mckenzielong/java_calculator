@@ -96,25 +96,20 @@ public class Calculator {
       //try to build and evaulate the syntax tree we created
       try {
          BasicElement treeRoot = buildSyntaxTree(tokens);
-         System.out.println(treeRoot.toString());
+         //System.out.println(vettedArgs);
          System.out.println(treeRoot.evaluate());
       } catch (SyntaxTreeException e) {
-         System.out.println(vettedArgs);
          System.out.println("Error building syntax tree: " + e.getMessage());
       } catch (NumberFormatException e) {
-         System.out.println(vettedArgs);
          System.out.println("Error parsing integer: " + e.getMessage());
       } catch (IllegalArgumentException e) {
-         System.out.println(vettedArgs);
          System.out.println("Error creating variable: " + e.getMessage());
       } catch (UnsupportedOperationException e) {
-         System.out.println(vettedArgs);
          System.out.println("Error evaluating: " + e.getMessage());
       } catch (ArithmeticException e) {
          System.out.println("Arithmetic Error: " + e.getMessage());
       } catch (Exception e) {
          //General, but allows us to exit gracefully on error.
-         System.out.println(vettedArgs);
          System.out.println("Unexpected Error: " + e.getMessage());
       }
 
@@ -150,8 +145,6 @@ public class Calculator {
          BasicElement currentElement = createNode(currentToken, scopeLevel);
 
          if (!stackOfElements.empty()) {
-            System.out.println("current is: " + currentElement.getClass().toString());
-
             /* if the current token is a terminator, update the parent's syntax in terms of 
              'terminators'. 
   
@@ -159,7 +152,6 @@ public class Calculator {
              Found it easier to structure code this way since we are updating for syntax versus 
              updating for both syntax and evaluation */
             BasicElement parentElement = stackOfElements.pop();
-            System.out.println("Parent is: " + parentElement.getClass().toString());
 
             if (Terminator.class.isInstance(currentElement)) {
 
@@ -234,12 +226,10 @@ public class Calculator {
           Integers and terminators do not need further processesing.  Variables are only valid
           after the value is set by the let operation. */
          if (Operation.class.isInstance(currentElement)) {
-            System.out.println("Pushing obj");
             stackOfElements.push(currentElement);
          }
 
       }
-      System.out.println("Open brackets is: " + scopeLevel.toString());
       if (scopeLevel > 0) {
          throw new SyntaxTreeException("There is " + scopeLevel + " unclosed brackets.");
       }
@@ -314,7 +304,6 @@ public class Calculator {
     */
    private static BasicElement updateParentNodeTerminator(
            BasicElement parentElement, Terminator currentElement) throws SyntaxTreeException {
-      //System.out.println("Parent is: " + parentElement.getClass().toString());
       if (Operation.class.isInstance(parentElement)) {
          Operation ops = Operation.class.cast(parentElement);
          if (LeftBracket.class.isInstance(currentElement)) {
@@ -339,7 +328,6 @@ public class Calculator {
                if (LetOperation.class.isInstance(ops)) {
                   LetOperation letOp = LetOperation.class.cast(ops);
                   if (!letOp.hasSecondComma()) {
-                     System.out.println("Setting second comma");
                      letOp.setSecondComma();
                   } else {
                      throw new SyntaxTreeException("Second comma separator already set for "
@@ -382,10 +370,8 @@ public class Calculator {
          //few cases here
          if (lrOpt.getLeftOpperand() == null) {
             lrOpt.setLeftOperand(currentElement);
-            System.out.println("Is set? Left " + LROperation.class.cast(parentElement).getLeftOpperand().getClass());
          } else if (lrOpt.getRightOpperand() == null && lrOpt.hasComma()) {
             lrOpt.setRightOperand(currentElement);
-            System.out.println("Is set? Right " + LROperation.class.cast(parentElement).getRightOpperand().getClass());
          } else {
             throw new SyntaxTreeException("Operands for " + lrOpt.getClass().toString() + " at scope: "
                     + parentElement.getScope() + " are not correctly formatted");
@@ -397,7 +383,6 @@ public class Calculator {
                  && !letOpt.hasComma()
                  && !letOpt.hasSecondComma()) {
             //Here we don't check first comma, as variable is created before
-            System.out.println("Set variable");
             letOpt.setVariable(VariableElement.class.cast(currentElement));
          } else if (letOpt.hasComma() && !letOpt.hasSecondComma()) {
             //Here we have the second item in the let, the value expression
@@ -408,7 +393,6 @@ public class Calculator {
                        + " is expected to be set, but is not.");
             }
             if (letOpt.getVariable().getValue() == null) {
-               System.out.println("Set variable's value");
                letOpt.getVariable().setValue(currentElement);
             } else {
                throw new SyntaxTreeException("Variable for " + letOpt.getClass().toString()
