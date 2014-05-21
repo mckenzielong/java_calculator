@@ -275,10 +275,10 @@ public class Calculator {
          LROperation lrOpt = LROperation.class.cast(parentElement);
          //few cases here
          if (lrOpt.getLeftOpperand() == null) {
-            lrOpt.setLeftOpperand(currentElement);
+            lrOpt.setLeftOperand(currentElement);
             System.out.println("Is set? Left " + LROperation.class.cast(parentElement).getLeftOpperand().getClass());
          } else if (lrOpt.getRightOpperand() == null && lrOpt.hasComma()) {
-            lrOpt.setRightOpperand(currentElement);
+            lrOpt.setRightOperand(currentElement);
             System.out.println("Is set? Right " + LROperation.class.cast(parentElement).getRightOpperand().getClass());
          } else {
             //syntax error
