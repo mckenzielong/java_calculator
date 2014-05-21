@@ -55,14 +55,14 @@ import java.util.StringTokenizer;
  * clunky to me in this current state, clogging up what could be an even more readable
  * buildSyntaxTree method.
  * </p>
- * 
+ *
  * <p>
- * Lastly, I added a bit of error checking by handling exceptional cases.  While it is certainly far
- * from perfect, the inclusion of the scope level should make locating the error simple.  I suppose
- * I could also include the current stack of ' parent / invalid ' expressions to make the task of
+ * Lastly, I added a bit of error checking by handling exceptional cases. While it is certainly far
+ * from perfect, the inclusion of the scope level should make locating the error simple. I suppose I
+ * could also include the current stack of ' parent / invalid ' expressions to make the task of
  * locating easier.
  * </p>
- * 
+ *
  * @author McKenzie Long
  */
 public class Calculator {
@@ -297,6 +297,15 @@ public class Calculator {
       return returnElement;
    }
 
+   /**
+    * Update the syntax flags of a BasicElement on that was on top of the expression stack. If the
+    * syntax is invalid or incorrect, a Syntax Exception is thrown.
+    *
+    * @param parentElement is the parent element for the current element in the syntax tree.
+    * @param currentElement is the child element of parent in the syntax tree. Is a terminator
+    * @return an updated parent element where the syntax flags might have been updated.
+    * @throws SyntaxTreeException if the syntax of an expression has been violated.
+    */
    private static BasicElement updateParentNodeTerminator(
            BasicElement parentElement, Terminator currentElement) throws SyntaxTreeException {
       //System.out.println("Parent is: " + parentElement.getClass().toString());
@@ -347,6 +356,18 @@ public class Calculator {
       return parentElement;
    }
 
+   /**
+    * Update the expressions of the parent element as the current element in the syntax tree. This
+    * method is meant to take operations, but is extendible and flexible to allow for error
+    * handling.
+    *
+    * @param parentElement is the parent element for the current element in the syntax tree.
+    * @param currentElement is a child expression (non-terminator) of the current node for the
+    * syntax tree.
+    * @return an updated parentElement where the expressions have been updated.
+    * @throws SyntaxTreeException if there is an Syntax error such that currentElement makes no
+    * sense in the context of parentElement.
+    */
    private static BasicElement updateParentNodeExpression(
            BasicElement parentElement, BasicElement currentElement) throws SyntaxTreeException {
 
