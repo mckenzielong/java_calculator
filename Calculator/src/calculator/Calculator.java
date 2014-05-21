@@ -51,9 +51,14 @@ public class Calculator {
       StringTokenizer tokens = new StringTokenizer(vettedArgs, "\\(|\\)|,", true);
 
       //try to build and evaulate the syntax tree we created
+      try {
       BasicElement treeRoot = buildSyntaxTree(tokens);
       System.out.println(treeRoot.toString());
       System.out.println(treeRoot.evaluate());
+      } catch (Exception e) {
+         System.out.println(vettedArgs);
+         System.out.println("Error: " + e.getMessage());
+      }
 
    }
 
