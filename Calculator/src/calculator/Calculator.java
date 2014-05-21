@@ -76,11 +76,14 @@ public class Calculator {
                  this way since we are updating for syntax versus updating for
                  both syntax and evaluation */
                 BasicElement parentElement = stackOfElements.pop();
+                System.out.println("Parent is: " + parentElement.getClass().toString());
 
                 if (Terminator.class.isInstance(currentElement)) {
 
                     parentElement = updateParentNodeTerminator(parentElement,
                             Terminator.class.cast(currentElement));
+                    
+                    stackOfElements.push(parentElement);
 
                     /* Once we have updated the parent for syntax, we need to 
                      check if any adjustments must be made to the scope level. 
@@ -100,15 +103,17 @@ public class Calculator {
                 } else {
                     parentElement = updateParentNodeExpression(parentElement,
                             currentElement);
+                    
+                    stackOfElements.push(parentElement);
 
                 }
 
-                stackOfElements.push(parentElement);
+                
 
             }
 
             if (!Terminator.class.isInstance(currentElement)
-                    || !IntegerElement.class.isInstance(currentElement)) {
+                    && !IntegerElement.class.isInstance(currentElement)) {
                 System.out.println("Pushing obj");
                 stackOfElements.push(currentElement);
             }
@@ -176,7 +181,7 @@ public class Calculator {
 
     private static BasicElement updateParentNodeTerminator(
             BasicElement parentElement, Terminator currentElement) {
-        System.out.println("Parent is: " + parentElement.getClass().toString());
+        //System.out.println("Parent is: " + parentElement.getClass().toString());
         if (Operation.class.isInstance(parentElement)) {
             Operation ops = LROperation.class.cast(parentElement);
             if (LeftBracket.class.isInstance(currentElement)) {
@@ -219,8 +224,24 @@ public class Calculator {
 
     private static BasicElement updateParentNodeExpression(
             BasicElement parentElement, BasicElement currentElement) {
+        
+        if (LROperation.class.isInstance(parentElement)) {
+            LROperation lrOpt = LROperation.class.cast(parentElement);
+            //few cases here
+            if (lrOpt.getLeftOpperand() == null) {
+                lrOpt.setLeftOpperand(currentElement);
+                System.out.println("Is set? Left " + LROperation.class.cast(parentElement).getLeftOpperand().getClass());
+            } else if (lrOpt.getRightOpperand() == null && lrOpt.hasComma()) {
+                lrOpt.setRightOpperand(currentElement);
+                System.out.println("Is set? Right " + LROperation.class.cast(parentElement).getRightOpperand().getClass());
+            } else {
+                //syntax error
+            }
+            
+            
+        }
 
-        return null;
+        return parentElement;
 
     }
 }
