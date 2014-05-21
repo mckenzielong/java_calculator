@@ -20,6 +20,7 @@ public abstract class BasicElement {
     }
 
     public abstract int evaluate();
+    public abstract boolean isValidSyntax();
 
     public void setParent(BasicElement parent) {
         this.parent = parent;

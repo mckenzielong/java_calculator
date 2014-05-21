@@ -29,4 +29,11 @@ public class IntegerElement extends Terminator {
     public String toString() {
         return value.toString();
     }        
+
+    @Override
+    public boolean isValidSyntax() {
+        return true;
+    }
+    
+    
 }

@@ -54,7 +54,7 @@ public class Calculator {
         
         while (tokens.hasMoreTokens()) {
             String currentToken = tokens.nextToken();
-            BasicElement currentElement = processToken(currentToken, scopeLevel);
+            BasicElement currentElement = createNode(currentToken, scopeLevel);
 
             //We now have and object representing the current token in hand
             //move this?
@@ -75,86 +75,19 @@ public class Calculator {
                 //parent has left and right operands (sub, add, etc)
                 //TODO: currently duped code, think of how to fix
                 //if current is an LROpt, let, var or int, we need to look at parent
-                if (Operation.class.isInstance(currentElement)
-                        || LetOperation.class.isInstance(currentElement)
-                        || IntegerElement.class.isInstance(currentElement)) {
                     
-                    BasicElement parentElement = stackOfElements.pop();
-                    System.out.println("Parent is: " + parentElement.getClass().toString());
-                    if (Operation.class.isInstance(parentElement)) {
-                        Operation ops = Operation.class.cast(parentElement);
-                        if (ops.getLeftOpperand() == null) {
-                            System.out.println("SET LEFT ELEMENT " + currentElement.getClass().toString());
-                            ops.setLeftOpperand(currentElement);
-                        } else if (ops.getRightOpperand() == null) {
-                            System.out.println("SET RIGHT ELEMENT " + currentElement.getClass().toString());
-                            ops.setRightOpperand(currentElement);
-                        } else {
-                            System.out.println("Syntax Error: opperand is loaded");
-                            //error!
-                        }
-                    } else if (LetOperation.class.isInstance(parentElement)) {
-                        LetOperation letOps = LetOperation.class.cast(parentElement);
-                        if (letOps.getVariable() == null) {
-                            //System.out.println("SET LEFT LEMENT");
-                            //letOps.setVariable(currentElement);
-                        } else if (letOps.getExpression() == null) {
-                            //System.out.println("SET RIGHT LEMENT");
-                            letOps.setExpression(currentElement);
-                        } else {
-                            //error!
-                        }
-                    } else if (VariableElement.class.isInstance(parentElement)) {
-                        VariableElement varOp = VariableElement.class.cast(parentElement);
-                        if (varOp.getValue() == null) {
-                            varOp.setValue(currentElement);
-                        } else {
-                            System.out.println("Syntax Error: Variable already has value set");
-                        }
-                    }
-                    stackOfElements.push(parentElement);
-                
-                } else if (VariableElement.class.isInstance(currentElement)) {
-                    BasicElement parentElement = stackOfElements.pop();
-                    //if this is a var declaration, add it to the stack, next should be value
-                    if (LetOperation.class.isInstance(parentElement)
-                            && (LetOperation.class.cast(parentElement).getVariable() == null)) {
-                        //add it to the stack, but the variable isn't active yet
-                    }
-                    
-                } else if (LeftBracket.class.isInstance(currentElement)) {
+                BasicElement parentElement = updateParentNode(stackOfElements.pop(), currentElement);
+                stackOfElements.push(parentElement);
+ 
+                if (LeftBracket.class.isInstance(currentElement)) {
                     scopeLevel++;
                 } else if (RightBracket.class.isInstance(currentElement)) {
-                    BasicElement parentElement = stackOfElements.pop();
-                    scopeLevel--;
-                } else if (Separator.class.isInstance(currentElement)) {
-                    BasicElement parentElement = stackOfElements.pop();
-                    System.out.println("COMMA TOKEN: " + parentElement.getClass().toString());
-                    //check for cases opt(,val)
-                    if (Operation.class.isInstance(parentElement)) {
-                        Operation ops = Operation.class.cast(parentElement);
-                        if (ops.getLeftOpperand() == null) {
-                            //Error...
-                            System.out.println("Syntax Error: no left element");
-                        } else if (ops.getLeftOpperand() != null && ops.getRightOpperand() != null) {
-                            System.out.println("Syntax Error: unexpected comma");
-                        }
-                    } else if (LetOperation.class.isInstance(parentElement)) {
-                        LetOperation letOpt = LetOperation.class.cast(parentElement);
-                        /*three cases here:
-                        1) var name just set
-                        2) value for var just set
-                        3) syntax error
-                        */
-                        if (letOpt.getVariable() == null) {
-                            System.out.println("Syntax Error: variable name not declared");
-                        } else if (letOpt.getVariable().getValue() == null) {
-                            
-                        }
+                    BasicElement finishedElement = stackOfElements.pop();
+                    if (!finishedElement.isValidSyntax()) {
+                        //error, bad syntax
                     }
-                    stackOfElements.push(parentElement);
-                }
-                
+                    scopeLevel--;
+                } 
             }
 
             if (!Terminator.class.isInstance(currentElement)) {
@@ -174,7 +107,7 @@ public class Calculator {
      * @param scopeLevel
      * @return
      */
-    private static BasicElement processToken(String token, Integer scopeLevel) 
+    private static BasicElement createNode(String token, Integer scopeLevel) 
             throws NumberFormatException,IllegalArgumentException {
         BasicElement returnElement;
         switch (token) {
@@ -221,6 +154,62 @@ public class Calculator {
                 }     
         }
         return returnElement;
+    }
+    
+    private static BasicElement updateParentNode(BasicElement parentElement, BasicElement currentElement) {
+        System.out.println("Parent is: " + parentElement.getClass().toString());
+        if (Operation.class.isInstance(parentElement)) {
+            Operation ops = Operation.class.cast(parentElement);
+            if (LeftBracket.class.isInstance(currentElement)) {
+                if (!ops.hasLeftBracket()) {
+                    ops.setLeftBracket();
+                } else {
+                    //error, opening bracket already set
+                }
+            } else if (RightBracket.class.isInstance(currentElement)) {
+                if (!ops.hasRightBracket()) {
+                    ops.setRightBracket();
+                } else {
+                    //error, closing bracket already set
+                }
+            } else if (Separator.class.isInstance(currentElement)) {
+                if (!ops.hasComma()) {
+                    ops.setComma();
+                } else {
+                    //error, comma already set
+                }
+            } else {   
+                if (ops.getLeftOpperand() == null) {
+                    System.out.println("SET LEFT ELEMENT " + currentElement.getClass().toString());
+                    ops.setLeftOpperand(currentElement);
+                } else if (ops.getRightOpperand() == null) {
+                    System.out.println("SET RIGHT ELEMENT " + currentElement.getClass().toString());
+                    ops.setRightOpperand(currentElement);
+                } else {
+                    System.out.println("Syntax Error: opperand is loaded");
+                    //error!
+                }
+            }  
+        } /* else if (LetOperation.class.isInstance(parentElement)) {
+            LetOperation letOps = LetOperation.class.cast(parentElement);
+            if (letOps.getVariable() == null) {
+                //System.out.println("SET LEFT ELEMENT");
+                //letOps.setVariable(currentElement);
+            } else if (letOps.getExpression() == null) {
+                //System.out.println("SET RIGHT ELEMENT");
+                letOps.setExpression(currentElement);
+            } else {
+                //error!
+            }
+        } else if (VariableElement.class.isInstance(parentElement)) {
+            VariableElement varOp = VariableElement.class.cast(parentElement);
+            if (varOp.getValue() == null) {
+                varOp.setValue(currentElement);
+            } else {
+                System.out.println("Syntax Error: Variable already has value set");
+            }
+        } */
+        return parentElement;
     }
 }
 

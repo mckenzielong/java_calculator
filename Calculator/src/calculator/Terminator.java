@@ -16,4 +16,8 @@ public abstract class Terminator extends BasicElement {
         super(scopeLevel);
     }
     
+    @Override
+    public boolean isValidSyntax() {
+        return false;
+    }
 }

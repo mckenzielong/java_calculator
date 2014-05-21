@@ -42,5 +42,9 @@ public class VariableElement extends BasicElement {
         //current rule is only 1 letter
         return name.matches(VARIABLE_NAME_FORMAT);
     } 
-    
+
+    @Override
+    public boolean isValidSyntax() {
+        return (value != null);
+    }
 }

@@ -42,6 +42,13 @@ public class LetOperation extends BasicElement {
     public void setExpression(BasicElement expression) {
         this.expression = expression;
     }
+
+    @Override
+    public boolean isValidSyntax() {
+        return (variable != null)
+                && (expression != null);
+    }
+    
     
     
 }

@@ -20,5 +20,5 @@ public class LeftBracket extends Terminator {
     public int evaluate() {
         throw new UnsupportedOperationException("");
     }
-    
+        
 }
