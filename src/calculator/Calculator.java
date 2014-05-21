@@ -15,7 +15,7 @@ import java.util.StringTokenizer;
  * <ul>
  * <li>add(expression, expression)</li>
  * <li>sub(expression, expression)</li>
- * <li>mul(expression, expression)</li>
+ * <li>mult(expression, expression)</li>
  * <li>div(expression, expression)</li>
  * <li>let(name, expression, expression)</li>
  * </ul>
