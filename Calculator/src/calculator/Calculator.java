@@ -57,7 +57,8 @@ public class Calculator {
 
    }
 
-   private static BasicElement buildSyntaxTree(StringTokenizer tokens) {
+   private static BasicElement buildSyntaxTree(StringTokenizer tokens)
+           throws SyntaxTreeException, IllegalArgumentException, NumberFormatException {
       BasicElement root = null;
       Integer scopeLevel = 0;
       Stack<BasicElement> stackOfElements = new Stack();
@@ -71,7 +72,7 @@ public class Calculator {
          root = createNode(tokens.nextToken(), scopeLevel);
          stackOfElements.push(root);
       } else {
-         //error, no tokens provided...
+         throw new SyntaxTreeException("No tokens were given to be evaluated");
       }
 
       /* We begin by walking the tokens.  Since everthing is evaluated left from right, we will
@@ -86,8 +87,6 @@ public class Calculator {
          BasicElement currentElement = createNode(currentToken, scopeLevel);
 
          if (!stackOfElements.empty()) {
-            //behaves agnostic of ',' seperator
-            //set correctly process the children of the parents
             System.out.println("current is: " + currentElement.getClass().toString());
 
             /* if the current token is a terminator, update the parent's syntax in terms of 
@@ -114,9 +113,13 @@ public class Calculator {
                   scopeLevel++;
                } else if (RightBracket.class.isInstance(currentElement)) {
                   BasicElement finishedElement = stackOfElements.pop();
+
+                  //we expect the finished element to be valid
                   if (!finishedElement.isValidSyntax()) {
-                     //error, bad syntax
+                     throw new SyntaxTreeException(finishedElement.toString()
+                             + " is not valid at scope level: " + finishedElement.getScope());
                   }
+
                   //if we just finished a let operation, clean up variables
                   if (LetOperation.class.isInstance(finishedElement)) {
                      VariableElement variableObject
@@ -136,16 +139,22 @@ public class Calculator {
                    cast will not be evaluated. */
                   if (LetOperation.class.isInstance(parentElement)
                           && !LetOperation.class.cast(parentElement).hasSecondComma()) {
+
                      //try to add a new variable with name, other wise except
                      if (activeVariables.put(variableCast.getName(), variableCast) != null) {
-                        //error, variable already exists
+                        throw new SyntaxTreeException("Variable name: " + variableCast.getName()
+                                + " has already been declared at scope: 0-"
+                                + variableCast.getScope());
                      }
+
                   } else {
                      //not variable declaration, try to find referenced variable
                      if (activeVariables.containsKey(variableCast.getName())) {
                         currentElement = activeVariables.get(variableCast.getName());
                      } else {
-                        //error, variable is not found
+                        throw new SyntaxTreeException("Variable name: " + variableCast.getName()
+                                + " has not been declared at scope: 0-"
+                                + variableCast.getScope());
                      }
                   }
                }
@@ -157,12 +166,15 @@ public class Calculator {
             }
          }
 
+         /* We only want to push the expression on the stack if it is an operation.  This is because
+          we need to revisit these once more of their syntax is encountered (ie: , and ) ).
+          Integers and terminators do not need further processesing.  Variables are only valid
+          after the value is set by the let operation. */
          if (Operation.class.isInstance(currentElement)) {
             System.out.println("Pushing obj");
             stackOfElements.push(currentElement);
          }
 
-         //we will push new opperand if not single opperand (int / var)
       }
       System.out.println("Open brackets is: " + scopeLevel.toString());
       return root;
@@ -225,7 +237,7 @@ public class Calculator {
    }
 
    private static BasicElement updateParentNodeTerminator(
-           BasicElement parentElement, Terminator currentElement) {
+           BasicElement parentElement, Terminator currentElement) throws SyntaxTreeException {
       //System.out.println("Parent is: " + parentElement.getClass().toString());
       if (Operation.class.isInstance(parentElement)) {
          Operation ops = Operation.class.cast(parentElement);
@@ -233,13 +245,15 @@ public class Calculator {
             if (!ops.hasLeftBracket()) {
                ops.setLeftBracket();
             } else {
-               //error, opening bracket already set
+               throw new SyntaxTreeException("Left bracket already set for " + ops.getClass().toString()
+                       + " at scope level: " + ops.getScope());
             }
          } else if (RightBracket.class.isInstance(currentElement)) {
             if (!ops.hasRightBracket()) {
                ops.setRightBracket();
             } else {
-               //error, closing bracket already set
+               throw new SyntaxTreeException("Right bracket already set for " + ops.getClass().toString()
+                       + " at scope level: " + ops.getScope());
             }
          } else if (Separator.class.isInstance(currentElement)) {
             if (!ops.hasComma()) {
@@ -252,24 +266,28 @@ public class Calculator {
                      System.out.println("Setting second comma");
                      letOp.setSecondComma();
                   } else {
-                     //error, second comma set
+                     throw new SyntaxTreeException("Second comma separator already set for "
+                             + letOp.getClass().toString() + " at scope level: "
+                             + letOp.getScope());
                   }
                } else {
-                  //comma is already set
+                  throw new SyntaxTreeException("Comma separator already set for "
+                          + ops.getClass().toString() + " at scope level: " + ops.getScope());
                }
             }
          } else {
-            //terminator case not implemented           
+            throw new SyntaxTreeException("Unknown terminator case encountered at scope level: "
+                    + currentElement.getScope());
          }
       } else {
-         //parent case not implemented -- syntax error
-         //ie: variable
+         throw new SyntaxTreeException("Unexpected parent case encountered at scope level: "
+                 + parentElement.getScope());
       }
       return parentElement;
    }
 
    private static BasicElement updateParentNodeExpression(
-           BasicElement parentElement, BasicElement currentElement) {
+           BasicElement parentElement, BasicElement currentElement) throws SyntaxTreeException {
 
       if (LROperation.class.isInstance(parentElement)) {
          LROperation lrOpt = LROperation.class.cast(parentElement);
@@ -281,7 +299,8 @@ public class Calculator {
             lrOpt.setRightOperand(currentElement);
             System.out.println("Is set? Right " + LROperation.class.cast(parentElement).getRightOpperand().getClass());
          } else {
-            //syntax error
+            throw new SyntaxTreeException("Operands for " + lrOpt.getClass().toString() + " at scope: "
+                    + parentElement.getScope() + " are not correctly formatted");
          }
       } else if (LetOperation.class.isInstance(parentElement)) {
          LetOperation letOpt = LetOperation.class.cast(parentElement);
@@ -298,46 +317,22 @@ public class Calculator {
                System.out.println("Set variable's value");
                letOpt.getVariable().setValue(currentElement);
             } else {
-               //syntax error, variable value already set
+               throw new SyntaxTreeException("Variable for " + letOpt.getClass().toString()
+                       + " at scope: " + parentElement.getScope() + " has already been set.");
             }
          } else if (letOpt.hasComma() && letOpt.hasSecondComma()) {
             letOpt.setExpression(currentElement);
          } else {
-            //syntax error, ill formatted let expression
+            throw new SyntaxTreeException(letOpt.getClass().toString() + " at scope: "
+                    + parentElement.getScope() + " is not correctly formatted.");
          }
 
       } else {
-         //syntax error, unexpected parent on stack
+         throw new SyntaxTreeException("Unexpected parent case encountered at scope level: "
+                 + parentElement.getScope());
       }
 
       return parentElement;
 
    }
 }
-
-/* seeing a ',' means a few things:
- 1) we have "Operation" on stack, should process right next
- 2) have let on stack, should process middle
- 3) have let on stack, should process right
- 4) bad formatting
-                 
- if (nextItemIsElement) {
- //error
- }
-
- BasicElement workingElement = stackOfElements.pop();
- System.out.println("COMMA TOKEN: " + workingElement.getClass().toString());
- //check for cases opt(,val)
- if (Operation.class.isInstance(workingElement)) {
- Operation ops = Operation.class.cast(workingElement);
- if (ops.getLeftOpperand() == null) {
- System.out.println("WHOOPS no left element?");
- }
- }
- stackOfElements.push(workingElement);
- //TODO Case for LET(var, val, expr)
-
- //the next element should be an element
- nextItemIsElement = true;
- break;
- */
