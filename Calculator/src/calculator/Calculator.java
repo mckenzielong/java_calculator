@@ -10,8 +10,59 @@ import java.util.StringTokenizer;
  * is built and evaluated. Output is printed to the standard out.
  * </p>
  * <p>
- * The idea I had was to approach this by building and evaluating a syntax tree.
+ * Accepted expressions are:
  *
+ * <ul>
+ * <li>add(expression, expression)</li>
+ * <li>sub(expression, expression)</li>
+ * <li>mul(expression, expression)</li>
+ * <li>div(expression, expression)</li>
+ * <li>let(name, expression, expression)</li>
+ * </ul>
+ *
+ * </p>
+ * <h5> A bit about my thought process here:</h5>
+ * <p>
+ * The idea I had was to approach this by building and evaluating a syntax tree. This would have
+ * been much easier to do using tools like lex and yacc, but abiding by the outline of the
+ * assignment, no external libraries. I suppose this could've been solved many different ways, but I
+ * feel like the syntax tree approach was easy to visualize, and should be easy to extend, where
+ * other solutions may not have the same ease of extention. For example, adding an exponent
+ * operation would be trivial. Extend LROperation and create the proper token. I feel like I might
+ * have missed an chance with using generics here.
+ * </p>
+ *
+ * <p>
+ * I opted to use a hashmap for variables. I can see how this might not be considered ideal as it
+ * could be considered pretty bloated active variables, but I opted for the quick linear time lookup
+ * of the variable. This also made dealing with name space collisions trivial. Also, for whatever
+ * reason, if collisions are desired, pairing the scope level with the variable name could make it
+ * easy to 1) have linear time lookup and 2) make it quick to find the nearest variable using just
+ * the scope level.
+ * </p>
+ *
+ * <p>
+ * I tried to avoid recursion when building the tree. In my opinion, it would have been much easier
+ * to simply write a recursive function to build the tree. That being said, given a large argument
+ * string, we could have quickly blown the call stack. So to avoid the recursion, we use a stack.
+ * Operations like LetOperations and LROperations are pushed on to the stack until they are complete
+ * and valid. Once we encounter the separator, we continue to the other part(s) of the expression.
+ * </p>
+ *
+ * <p>
+ * I tried to split up the building of the syntax tree into sensible parts. First we build a token,
+ * then depending on the token, we either call one or the other helper method. Variables do seem
+ * clunky to me in this current state, clogging up what could be an even more readable
+ * buildSyntaxTree method.
+ * </p>
+ * 
+ * <p>
+ * Lastly, I added a bit of error checking by handling exceptional cases.  While it is certainly far
+ * from perfect, the inclusion of the scope level should make locating the error simple.  I suppose
+ * I could also include the current stack of ' parent / invalid ' expressions to make the task of
+ * locating easier.
+ * </p>
+ * 
  * @author McKenzie Long
  */
 public class Calculator {
@@ -23,18 +74,6 @@ public class Calculator {
     * variables names are: strings of characters, where each character is one of a­z, A­Z.
     * </p>
     * <p>
-    * Accepted expressions are:
-    *
-    * <ul>
-    * <li>add(expression, expression)</li>
-    * <li>sub(expression, expression)</li>
-    * <li>mul(expression, expression)</li>
-    * <li>div(expression, expression)</li>
-    * <li>let(name, expression, expression)</li>
-    * </ul>
-    *
-    * </p>
-    * <p>
     * If an error is encountered, it will be printed to console.
     * </p>
     *
@@ -43,7 +82,7 @@ public class Calculator {
    public static void main(String[] args) {
 
       /* first combine all the arguments, incase they used spaces.  Use string builder since strings
-       in java are not mutable, next strip out any remaining whitespace and tokenize*/
+       in java are not mutable, next strip out any remaining whitespace and tokenize */
       StringBuilder allArgs = new StringBuilder();
       for (String arg : args) {
          allArgs.append(arg);

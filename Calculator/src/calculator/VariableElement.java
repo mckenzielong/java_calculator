@@ -65,7 +65,7 @@ public class VariableElement extends BasicElement {
 
    /**
     * Variables: strings of characters, where each character is one of a­z, A­Z. To me this means
-    * that variables are only one character in length, I am also making the assumption of no name
+    * that variables are many characters in length, but I am also making the assumption of no name
     * space collisions. Though this is easy to avoid using scope + name.
     *
     * @param name proposed variable name
