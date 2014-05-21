@@ -243,7 +243,7 @@ public class Calculator {
       if (scopeLevel > 0) {
          throw new SyntaxTreeException("There is " + scopeLevel + " unclosed brackets.");
       }
-      
+
       return root;
    }
 
@@ -404,7 +404,7 @@ public class Calculator {
             if (letOpt.getVariable() == null) {
                //if no variable has been given
                throw new SyntaxTreeException("Variable for " + letOpt.getClass().toString()
-                       + " at scope: " + parentElement.getScope() 
+                       + " at scope: " + parentElement.getScope()
                        + " is expected to be set, but is not.");
             }
             if (letOpt.getVariable().getValue() == null) {
