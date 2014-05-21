@@ -1,38 +1,43 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package calculator;
 
 /**
+ * Basic node for building the syntax tree. All other nodes in the tree derive from this class.
  *
- * @author Ken
+ * @author McKenzie Long
  */
 public abstract class BasicElement {
-    
-    private BasicElement parent;
-    private final Integer scope;
 
-    public BasicElement (Integer scopeLevel) {
-        scope = scopeLevel;
-    }
+   private final Integer scope;
 
-    public abstract int evaluate();
-    public abstract boolean isValidSyntax();
+   /**
+    * Sets the scope level of where the element falls in the syntax tree.
+    *
+    * @param scopeLevel
+    */
+   public BasicElement(Integer scopeLevel) {
+      scope = scopeLevel;
+   }
 
-    public void setParent(BasicElement parent) {
-        this.parent = parent;
-    }
+   /**
+    * Evaluate the current node as an integer.
+    *
+    * @return integer that is the value of the expression represented by the node.
+    */
+   public abstract int evaluate();
 
-    public BasicElement getParent() {
-        return parent;
-    }
-    
-    public Integer getScope() {
-        return scope;
-    }
-   
-    
+   /**
+    * Check to see if the current node is complete and valid.
+    *
+    * @return true if the node is valid, false if the node is invalid.
+    */
+   public abstract boolean isValidSyntax();
+
+   /**
+    * @return the level, also known as scope of where the node falls in the syntax tree. Root
+    * defaults to zero.
+    */
+   public Integer getScope() {
+      return scope;
+   }
+
 }

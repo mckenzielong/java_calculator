@@ -14,7 +14,7 @@ public class IntegerElement extends BasicElement {
 
     private final Integer value;
 
-    public IntegerElement(Integer knownValue, Integer scopeLevel) {
+    public IntegerElement(Integer scopeLevel, Integer knownValue) {
         super(scopeLevel);
         value = knownValue;
         
