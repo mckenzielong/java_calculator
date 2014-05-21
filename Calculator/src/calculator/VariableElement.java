@@ -22,6 +22,8 @@ public class VariableElement extends BasicElement {
         //check if variable name is legal
         if (!isValidName(name)) {
             throw new IllegalArgumentException("Variable name is not properly formatted: " + VARIABLE_NAME_FORMAT);
+        } else {
+            this.name = name;
         }
     }
 
@@ -36,6 +38,10 @@ public class VariableElement extends BasicElement {
 
     public void setValue(BasicElement value) {
         this.value = value;
+    }
+    
+    public String getName() {
+        return name;
     }
     
     private boolean isValidName(String name) {

@@ -97,10 +97,37 @@ public class Calculator {
                         if (!finishedElement.isValidSyntax()) {
                             //error, bad syntax
                         }
+                        //if we just finished a let operation, clean up variables
+                        if (LetOperation.class.isInstance(finishedElement)) {
+                            VariableElement variableObject = LetOperation.class.cast(finishedElement).getVariable();
+                            activeVariables.remove(variableObject.getName());
+                        }
                         scopeLevel--;
                     }
 
                 } else {
+                    //We have a special case when dealing with variables
+                    if (VariableElement.class.isInstance(currentElement)) {
+                        VariableElement variableCast
+                                    = VariableElement.class.cast(currentElement);
+                        /* is a not variable definition, meaning that we have
+                           not set the second comma */
+                        if (LetOperation.class.isInstance(parentElement)
+                                && !LetOperation.class.cast(parentElement).hasSecondComma()) {
+                            //try to add a new variable with name
+                            if (activeVariables.put(variableCast.getName(), variableCast) != null) {
+                                //error, variable already exists
+                            }
+                        } else {
+                            //try to find referenced variable
+                            if (activeVariables.containsKey(variableCast.getName())) {
+                                currentElement = activeVariables.get(variableCast.getName());
+                            } else {
+                                //error, variable is not found
+                            }
+                        }
+                    }
+
                     parentElement = updateParentNodeExpression(parentElement,
                             currentElement);
                     
@@ -108,12 +135,9 @@ public class Calculator {
 
                 }
 
-                
-
             }
 
-            if (!Terminator.class.isInstance(currentElement)
-                    && !IntegerElement.class.isInstance(currentElement)) {
+            if (Operation.class.isInstance(currentElement)) {
                 System.out.println("Pushing obj");
                 stackOfElements.push(currentElement);
             }
@@ -183,7 +207,7 @@ public class Calculator {
             BasicElement parentElement, Terminator currentElement) {
         //System.out.println("Parent is: " + parentElement.getClass().toString());
         if (Operation.class.isInstance(parentElement)) {
-            Operation ops = LROperation.class.cast(parentElement);
+            Operation ops = Operation.class.cast(parentElement);
             if (LeftBracket.class.isInstance(currentElement)) {
                 if (!ops.hasLeftBracket()) {
                     ops.setLeftBracket();
@@ -204,6 +228,7 @@ public class Calculator {
                     if (LetOperation.class.isInstance(ops)) {
                         LetOperation letOp = LetOperation.class.cast(ops);
                         if (!letOp.hasSecondComma()) {
+                            System.out.println("Setting second comma");
                             letOp.setSecondComma();
                         } else {
                             //error, second comma set
@@ -217,8 +242,8 @@ public class Calculator {
             }
         } else {
             //parent case not implemented -- syntax error
+            //ie: variable
         }
-
         return parentElement;
     }
 
@@ -237,8 +262,31 @@ public class Calculator {
             } else {
                 //syntax error
             }
+        } else if (LetOperation.class.isInstance(parentElement)) {
+            LetOperation letOpt = LetOperation.class.cast(parentElement);
+            if (letOpt.getVariable() == null 
+                    && VariableElement.class.isInstance(currentElement)
+                    && !letOpt.hasComma()
+                    && !letOpt.hasSecondComma()) {
+                //Here we don't check first comma, as variable is created before
+                System.out.println("Set variable");
+                letOpt.setVariable(VariableElement.class.cast(currentElement));
+            } else if (letOpt.hasComma() && !letOpt.hasSecondComma()) {
+                //Here we have the second item in the let, the value expression
+                if (letOpt.getVariable().getValue() == null) {
+                    System.out.println("Set variable's value");
+                    letOpt.getVariable().setValue(currentElement);
+                } else {
+                    //syntax error, variable value already set
+                }
+            } else if (letOpt.hasComma() && letOpt.hasSecondComma()) {
+                letOpt.setExpression(currentElement);
+            } else {
+                //syntax error, ill formatted let expression
+            }
             
-            
+        } else {
+            //syntax error, unexpected parent on stack
         }
 
         return parentElement;

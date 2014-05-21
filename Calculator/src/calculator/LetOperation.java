@@ -26,7 +26,8 @@ public class LetOperation extends Operation {
     
     @Override
     public int evaluate() {
-        return 0;
+        System.out.println("VAR VALUE IS " + variable.evaluate());
+        return expression.evaluate();
     }
     
     public VariableElement getVariable() {
